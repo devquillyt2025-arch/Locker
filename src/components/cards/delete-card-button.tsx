@@ -13,9 +13,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteEntryAction } from "@/app/actions";
+import { deleteCardAction } from "@/app/actions";
 
-export function DeleteEntryButton({ id, title }: { id: string; title: string }) {
+export function DeleteCardButton({ id, title }: { id: string; title: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -27,13 +27,14 @@ export function DeleteEntryButton({ id, title }: { id: string; title: string }) 
         <AlertDialogHeader>
           <AlertDialogTitle>Delete &quot;{title}&quot;?</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently deletes the entry, its fields, and anything
-            linked to it (files, reminders). This can&apos;t be undone.
+            This permanently deletes the card, its fields, and anything
+            linked to it (files, reminders, vault entries). This can&apos;t
+            be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <form action={deleteEntryAction.bind(null, id)}>
+          <form action={deleteCardAction.bind(null, id)}>
             <AlertDialogAction asChild>
               <button type="submit" className="w-full">
                 Delete

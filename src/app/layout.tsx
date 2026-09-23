@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LifeDesk",
-  description: "Your private, local-first life admin",
+  title: "Locker",
+  description: "Your private, local-first document & info vault",
 };
 
 export default function RootLayout({

@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.claude/
 
 # debug
 npm-debug.log*
@@ -30,8 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (never commit real credentials)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,5 +42,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local data — this is the whole point, never commit real personal data
+# leftover local SQLite db from the pre-Supabase local-first version
 /data/

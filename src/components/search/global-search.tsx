@@ -10,9 +10,9 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ENTRY_TYPE_META } from "@/lib/entry-types";
+import { CARD_TYPE_META } from "@/lib/card-types";
 import { searchAction } from "@/app/actions";
-import type { SearchResult } from "@/lib/entries";
+import type { SearchResult } from "@/lib/cards";
 
 export function GlobalSearch({
   open,
@@ -50,18 +50,18 @@ export function GlobalSearch({
 
   function select(id: string) {
     onOpenChange(false);
-    router.push(`/entries/${id}`);
+    router.push(`/cards/${id}`);
   }
 
   return (
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Search LifeDesk"
-      description="Search your entries by title, tag, or field"
+      title="Search Locker"
+      description="Search your cards by title, alias, tag, or field"
     >
       <CommandInput
-        placeholder="Search everything... (e.g. SBI account number)"
+        placeholder="Search everything... (e.g. aadhaar, car insurance)"
         value={query}
         onValueChange={setQuery}
       />
@@ -70,23 +70,23 @@ export function GlobalSearch({
           <CommandEmpty>No matches for &quot;{query}&quot;.</CommandEmpty>
         )}
         {!query.trim() && (
-          <CommandEmpty>Type to search your entries.</CommandEmpty>
+          <CommandEmpty>Type to search your cards.</CommandEmpty>
         )}
         {results.length > 0 && (
-          <CommandGroup heading="Entries">
+          <CommandGroup heading="Cards">
             {results.map((r) => {
-              const meta = ENTRY_TYPE_META[r.entry.type];
+              const meta = CARD_TYPE_META[r.card.type];
               const Icon = meta.icon;
               return (
                 <CommandItem
-                  key={r.entry.id}
-                  value={r.entry.id}
-                  onSelect={() => select(r.entry.id)}
+                  key={r.card.id}
+                  value={r.card.id}
+                  onSelect={() => select(r.card.id)}
                   className="flex items-center gap-2"
                 >
                   <Icon className="size-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate">{r.entry.title}</p>
+                    <p className="truncate">{r.card.title}</p>
                     {r.matchedField && (
                       <p className="truncate text-xs text-muted-foreground">
                         {r.matchedField.key}: {r.matchedField.value}

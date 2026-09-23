@@ -1,181 +1,203 @@
 {
-  "version": "6",
-  "dialect": "sqlite",
-  "id": "bbe77d90-5054-4947-8d6e-fda686d4a06f",
+  "id": "388149ca-3100-41a6-8ea6-eb42ac845a52",
   "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "chunks": {
-      "name": "chunks",
+    "public.cards": {
+      "name": "cards",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "default": "gen_random_uuid()"
         },
-        "entry_id": {
-          "name": "entry_id",
-          "type": "text",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "text": {
-          "name": "text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "embedding": {
-          "name": "embedding",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "chunks_entry_id_entries_id_fk": {
-          "name": "chunks_entry_id_entries_id_fk",
-          "tableFrom": "chunks",
-          "tableTo": "entries",
-          "columnsFrom": [
-            "entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "entries": {
-      "name": "entries",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "type": {
           "name": "type",
-          "type": "text",
+          "type": "card_type",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
-        "body": {
-          "name": "body",
-          "type": "text",
+        "aliases": {
+          "name": "aliases",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "''"
+          "default": "'[]'::jsonb"
         },
         "tags": {
           "name": "tags",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "notes": {
+          "name": "notes",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'[]'"
+          "default": "''"
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "integer",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
+          "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "cards_user_id_idx": {
+          "name": "cards_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {
+        "owner_crud": {
+          "name": "owner_crud",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = \"cards\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"cards\".\"user_id\""
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
     },
-    "fields": {
+    "public.fields": {
       "name": "fields",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "default": "gen_random_uuid()"
         },
-        "entry_id": {
-          "name": "entry_id",
-          "type": "text",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
+        },
+        "card_id": {
+          "name": "card_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "key": {
           "name": "key",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "value": {
           "name": "value",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": "''"
         },
-        "sensitive": {
-          "name": "sensitive",
-          "type": "integer",
+        "is_secret": {
+          "name": "is_secret",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": false
+        },
+        "iv": {
+          "name": "iv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salt": {
+          "name": "salt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "masked": {
+          "name": "masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "sort_order": {
           "name": "sort_order",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": 0
         }
       },
-      "indexes": {},
+      "indexes": {
+        "fields_card_id_idx": {
+          "name": "fields_card_id_idx",
+          "columns": [
+            {
+              "expression": "card_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "fields_entry_id_entries_id_fk": {
-          "name": "fields_entry_id_entries_id_fk",
+        "fields_card_id_cards_id_fk": {
+          "name": "fields_card_id_cards_id_fk",
           "tableFrom": "fields",
-          "tableTo": "entries",
+          "tableTo": "cards",
           "columnsFrom": [
-            "entry_id"
+            "card_id"
           ],
           "columnsTo": [
             "id"
@@ -186,64 +208,111 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {
+        "owner_crud": {
+          "name": "owner_crud",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = \"fields\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"fields\".\"user_id\""
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
     },
-    "files": {
-      "name": "files",
+    "public.links": {
+      "name": "links",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "default": "gen_random_uuid()"
         },
-        "entry_id": {
-          "name": "entry_id",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "card_id": {
+          "name": "card_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "path": {
-          "name": "path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "mime": {
-          "name": "mime",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "extracted_text": {
-          "name": "extracted_text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
           "default": "''"
         },
-        "content_hash": {
-          "name": "content_hash",
+        "url": {
+          "name": "url",
           "type": "text",
           "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "link_source",
+          "typeSchema": "public",
+          "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "''"
+          "default": "'other'"
+        },
+        "drive_file_id": {
+          "name": "drive_file_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "link_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'doc'"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         }
       },
-      "indexes": {},
+      "indexes": {
+        "links_card_id_idx": {
+          "name": "links_card_id_idx",
+          "columns": [
+            {
+              "expression": "card_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
-        "files_entry_id_entries_id_fk": {
-          "name": "files_entry_id_entries_id_fk",
-          "tableFrom": "files",
-          "tableTo": "entries",
+        "links_card_id_cards_id_fk": {
+          "name": "links_card_id_cards_id_fk",
+          "tableFrom": "links",
+          "tableTo": "cards",
           "columnsFrom": [
-            "entry_id"
+            "card_id"
           ],
           "columnsTo": [
             "id"
@@ -254,139 +323,211 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {
+        "owner_crud": {
+          "name": "owner_crud",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = \"links\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"links\".\"user_id\""
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
     },
-    "reminders": {
-      "name": "reminders",
+    "public.push_subscriptions": {
+      "name": "push_subscriptions",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "default": "gen_random_uuid()"
         },
-        "entry_id": {
-          "name": "entry_id",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endpoint": {
+          "name": "endpoint",
           "type": "text",
           "primaryKey": false,
+          "notNull": true
+        },
+        "p256dh": {
+          "name": "p256dh",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auth": {
+          "name": "auth",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_label": {
+          "name": "device_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "push_subscriptions_user_id_idx": {
+          "name": "push_subscriptions_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "push_subscriptions_endpoint_unique": {
+          "name": "push_subscriptions_endpoint_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "endpoint"
+          ]
+        }
+      },
+      "policies": {
+        "owner_crud": {
+          "name": "owner_crud",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = \"push_subscriptions\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"push_subscriptions\".\"user_id\""
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.reminders": {
+      "name": "reminders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "card_id": {
+          "name": "card_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_key": {
+          "name": "field_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "due_date": {
           "name": "due_date",
-          "type": "text",
+          "type": "date",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "recurrence": {
           "name": "recurrence",
-          "type": "text",
+          "type": "recurrence",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": "'none'"
         },
         "lead_days": {
           "name": "lead_days",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'[]'"
+          "default": "'[30,7,1]'::jsonb"
         },
         "status": {
           "name": "status",
-          "type": "text",
+          "type": "reminder_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
           "default": "'pending'"
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "reminders_entry_id_entries_id_fk": {
-          "name": "reminders_entry_id_entries_id_fk",
-          "tableFrom": "reminders",
-          "tableTo": "entries",
-          "columnsFrom": [
-            "entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "vault": {
-      "name": "vault",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "field_id": {
-          "name": "field_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "ciphertext": {
-          "name": "ciphertext",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "iv": {
-          "name": "iv",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "auth_tag": {
-          "name": "auth_tag",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "masked": {
-          "name": "masked",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
       "indexes": {
-        "vault_field_id_unique": {
-          "name": "vault_field_id_unique",
+        "reminders_card_id_idx": {
+          "name": "reminders_card_id_idx",
           "columns": [
-            "field_id"
+            {
+              "expression": "card_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "isUnique": true
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "reminders_due_date_idx": {
+          "name": "reminders_due_date_idx",
+          "columns": [
+            {
+              "expression": "due_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
-        "vault_field_id_fields_id_fk": {
-          "name": "vault_field_id_fields_id_fk",
-          "tableFrom": "vault",
-          "tableTo": "fields",
+        "reminders_card_id_cards_id_fk": {
+          "name": "reminders_card_id_cards_id_fk",
+          "tableFrom": "reminders",
+          "tableTo": "cards",
           "columnsFrom": [
-            "field_id"
+            "card_id"
           ],
           "columnsTo": [
             "id"
@@ -397,17 +538,84 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {
+        "owner_crud": {
+          "name": "owner_crud",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = \"reminders\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"reminders\".\"user_id\""
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
     }
   },
-  "views": {},
-  "enums": {},
-  "_meta": {
-    "schemas": {},
-    "tables": {},
-    "columns": {}
+  "enums": {
+    "public.card_type": {
+      "name": "card_type",
+      "schema": "public",
+      "values": [
+        "id_doc",
+        "bank",
+        "insurance",
+        "vehicle",
+        "property",
+        "medical",
+        "education",
+        "contact",
+        "note"
+      ]
+    },
+    "public.link_kind": {
+      "name": "link_kind",
+      "schema": "public",
+      "values": [
+        "image",
+        "pdf",
+        "doc",
+        "folder"
+      ]
+    },
+    "public.link_source": {
+      "name": "link_source",
+      "schema": "public",
+      "values": [
+        "drive",
+        "digilocker",
+        "other"
+      ]
+    },
+    "public.recurrence": {
+      "name": "recurrence",
+      "schema": "public",
+      "values": [
+        "none",
+        "yearly",
+        "monthly"
+      ]
+    },
+    "public.reminder_status": {
+      "name": "reminder_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "done",
+        "snoozed"
+      ]
+    }
   },
-  "internal": {
-    "indexes": {}
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
   }
 }

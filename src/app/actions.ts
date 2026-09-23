@@ -3,13 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  createEntry,
-  deleteEntry,
-  searchEntries,
-  updateEntry,
+  createCard,
+  deleteCard,
+  searchCards,
+  updateCard,
   type SearchResult,
-} from "@/lib/entries";
-import { entryInputSchema } from "@/lib/validation";
+} from "@/lib/cards";
+import { cardInputSchema } from "@/lib/validation";
+import { requireUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export type ActionState = {
   ok: boolean;
@@ -17,53 +19,65 @@ export type ActionState = {
   fieldErrors?: Record<string, string>;
 };
 
-function parseFormEntry(formData: FormData) {
+function parseFormCard(formData: FormData) {
   const raw = {
     type: formData.get("type"),
     title: formData.get("title"),
-    body: formData.get("body") ?? "",
+    aliases: JSON.parse((formData.get("aliases") as string) || "[]"),
     tags: JSON.parse((formData.get("tags") as string) || "[]"),
+    notes: formData.get("notes") ?? "",
     fields: JSON.parse((formData.get("fields") as string) || "[]"),
+    links: JSON.parse((formData.get("links") as string) || "[]"),
   };
-  return entryInputSchema.safeParse(raw);
+  return cardInputSchema.safeParse(raw);
 }
 
-export async function createEntryAction(
+export async function createCardAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const parsed = parseFormEntry(formData);
+  const user = await requireUser();
+  const parsed = parseFormCard(formData);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const entry = createEntry(parsed.data);
-  revalidatePath("/entries");
-  redirect(`/entries/${entry.id}`);
+  const card = await createCard(user.id, parsed.data);
+  revalidatePath("/cards");
+  redirect(`/cards/${card.id}`);
 }
 
-export async function updateEntryAction(
+export async function updateCardAction(
   id: string,
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const parsed = parseFormEntry(formData);
+  const user = await requireUser();
+  const parsed = parseFormCard(formData);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  updateEntry(id, parsed.data);
-  revalidatePath("/entries");
-  revalidatePath(`/entries/${id}`);
-  redirect(`/entries/${id}`);
+  await updateCard(user.id, id, parsed.data);
+  revalidatePath("/cards");
+  revalidatePath(`/cards/${id}`);
+  redirect(`/cards/${id}`);
 }
 
-export async function deleteEntryAction(id: string): Promise<void> {
-  deleteEntry(id);
-  revalidatePath("/entries");
-  redirect("/entries");
+export async function deleteCardAction(id: string): Promise<void> {
+  const user = await requireUser();
+  await deleteCard(user.id, id);
+  revalidatePath("/cards");
+  redirect("/cards");
 }
 
 export async function searchAction(query: string): Promise<SearchResult[]> {
-  return searchEntries(query);
+  const user = await requireUser();
+  return searchCards(user.id, query);
+}
+
+export async function signOutAction(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
 }

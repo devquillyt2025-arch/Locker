@@ -8,11 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
-    "@types/better-sqlite3": "^9.6.0",
-    "better-sqlite3": "^13.0.3",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -23,6 +24,7 @@
     "lucide-react": "^1.47.0",
     "next": "15.5.26",
     "next-themes": "^0.4.6",
+    "postgres": "^3.4.5",
     "radix-ui": "^1.6.7",
     "react": "19.1.0",
     "react-day-picker": "^10.0.1",

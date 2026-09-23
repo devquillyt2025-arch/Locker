@@ -1,32 +1,27 @@
-import path from "node:path";
-import fs from "node:fs";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_PATH = path.join(DATA_DIR, "app.db");
-
 declare global {
-  var __lifedeskSqlite: Database.Database | undefined;
+  var __lockerPg: ReturnType<typeof postgres> | undefined;
 }
 
+// Trusted server-only connection (service role / DB password — never
+// exposed to the client). RLS policies on every table still protect the
+// anon-key/PostgREST path; authorization for this direct-connection path
+// is enforced in application code (every query filters by the verified
+// session's user id — see src/lib/auth.ts and src/lib/cards.ts).
 function createConnection() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.mkdirSync(path.join(DATA_DIR, "files"), { recursive: true });
-
-  const sqlite = new Database(DB_PATH);
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("foreign_keys = ON");
-  return sqlite;
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL is not set");
+  return postgres(url, { prepare: false });
 }
 
-// Cache the connection on globalThis so Next.js dev-mode hot reload
-// doesn't open a new file handle (and lose WAL state) on every edit.
-const sqlite = global.__lifedeskSqlite ?? createConnection();
+// Cache on globalThis so Next.js dev-mode hot reload doesn't open a new
+// connection pool on every edit.
+const client = global.__lockerPg ?? createConnection();
 if (process.env.NODE_ENV !== "production") {
-  global.__lifedeskSqlite = sqlite;
+  global.__lockerPg = client;
 }
 
-export const db = drizzle(sqlite, { schema });
-export { sqlite };
+export const db = drizzle(client, { schema });
