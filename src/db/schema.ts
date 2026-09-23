@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
-  pgTable,
-  pgEnum,
+  pgSchema,
   uuid,
   text,
   boolean,
@@ -13,6 +12,12 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 import { authUid, authenticatedRole } from "drizzle-orm/supabase";
+
+// This Supabase project is SHARED with the Nook app. Every Locker table,
+// enum, and index lives in the `locker` Postgres schema via `pgSchema`
+// below — never `public`, `auth`, or `storage`. Do not add a `pgTable`/
+// `pgEnum` call anywhere in this app; always go through `lockerSchema`.
+export const lockerSchema = pgSchema("locker");
 
 export const CARD_TYPES = [
   "id_doc",
@@ -39,11 +44,11 @@ export type LinkSource = (typeof LINK_SOURCES)[number];
 export const LINK_KINDS = ["image", "pdf", "doc", "folder"] as const;
 export type LinkKind = (typeof LINK_KINDS)[number];
 
-export const cardTypeEnum = pgEnum("card_type", CARD_TYPES);
-export const recurrenceEnum = pgEnum("recurrence", RECURRENCE_TYPES);
-export const reminderStatusEnum = pgEnum("reminder_status", REMINDER_STATUS);
-export const linkSourceEnum = pgEnum("link_source", LINK_SOURCES);
-export const linkKindEnum = pgEnum("link_kind", LINK_KINDS);
+export const cardTypeEnum = lockerSchema.enum("card_type", CARD_TYPES);
+export const recurrenceEnum = lockerSchema.enum("recurrence", RECURRENCE_TYPES);
+export const reminderStatusEnum = lockerSchema.enum("reminder_status", REMINDER_STATUS);
+export const linkSourceEnum = lockerSchema.enum("link_source", LINK_SOURCES);
+export const linkKindEnum = lockerSchema.enum("link_kind", LINK_KINDS);
 
 // Every table carries `user_id` (denormalized, not just via a join to
 // `cards`) so a single equality check drives RLS on each table directly —
@@ -54,7 +59,7 @@ export const linkKindEnum = pgEnum("link_kind", LINK_KINDS);
 // (service role) and additionally filter by the verified session's user id
 // in application code — see src/lib/auth.ts.
 
-export const cards = pgTable(
+export const cards = lockerSchema.table(
   "cards",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -78,7 +83,7 @@ export const cards = pgTable(
   ]
 ).enableRLS();
 
-export const fields = pgTable(
+export const fields = lockerSchema.table(
   "fields",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -109,7 +114,7 @@ export const fields = pgTable(
   ]
 ).enableRLS();
 
-export const links = pgTable(
+export const links = lockerSchema.table(
   "links",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -135,7 +140,7 @@ export const links = pgTable(
   ]
 ).enableRLS();
 
-export const reminders = pgTable(
+export const reminders = lockerSchema.table(
   "reminders",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -163,7 +168,7 @@ export const reminders = pgTable(
   ]
 ).enableRLS();
 
-export const pushSubscriptions = pgTable(
+export const pushSubscriptions = lockerSchema.table(
   "push_subscriptions",
   {
     id: uuid("id").primaryKey().defaultRandom(),

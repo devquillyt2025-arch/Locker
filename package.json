@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:migrate": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs migrate",
+    "db:seed": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/seed.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

@@ -1,12 +1,12 @@
 {
-  "id": "388149ca-3100-41a6-8ea6-eb42ac845a52",
+  "id": "417cf17a-c1bd-41a4-baae-ca69a7ae293d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.cards": {
+    "locker.cards": {
       "name": "cards",
-      "schema": "",
+      "schema": "locker",
       "columns": {
         "id": {
           "name": "id",
@@ -24,7 +24,7 @@
         "type": {
           "name": "type",
           "type": "card_type",
-          "typeSchema": "public",
+          "typeSchema": "locker",
           "primaryKey": false,
           "notNull": true
         },
@@ -98,16 +98,16 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.uid()) = \"cards\".\"user_id\"",
-          "withCheck": "(select auth.uid()) = \"cards\".\"user_id\""
+          "using": "(select auth.uid()) = \"locker\".\"cards\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"locker\".\"cards\".\"user_id\""
         }
       },
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.fields": {
+    "locker.fields": {
       "name": "fields",
-      "schema": "",
+      "schema": "locker",
       "columns": {
         "id": {
           "name": "id",
@@ -196,6 +196,7 @@
           "name": "fields_card_id_cards_id_fk",
           "tableFrom": "fields",
           "tableTo": "cards",
+          "schemaTo": "locker",
           "columnsFrom": [
             "card_id"
           ],
@@ -216,16 +217,16 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.uid()) = \"fields\".\"user_id\"",
-          "withCheck": "(select auth.uid()) = \"fields\".\"user_id\""
+          "using": "(select auth.uid()) = \"locker\".\"fields\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"locker\".\"fields\".\"user_id\""
         }
       },
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.links": {
+    "locker.links": {
       "name": "links",
-      "schema": "",
+      "schema": "locker",
       "columns": {
         "id": {
           "name": "id",
@@ -262,7 +263,7 @@
         "source": {
           "name": "source",
           "type": "link_source",
-          "typeSchema": "public",
+          "typeSchema": "locker",
           "primaryKey": false,
           "notNull": true,
           "default": "'other'"
@@ -276,7 +277,7 @@
         "kind": {
           "name": "kind",
           "type": "link_kind",
-          "typeSchema": "public",
+          "typeSchema": "locker",
           "primaryKey": false,
           "notNull": true,
           "default": "'doc'"
@@ -311,6 +312,7 @@
           "name": "links_card_id_cards_id_fk",
           "tableFrom": "links",
           "tableTo": "cards",
+          "schemaTo": "locker",
           "columnsFrom": [
             "card_id"
           ],
@@ -331,16 +333,16 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.uid()) = \"links\".\"user_id\"",
-          "withCheck": "(select auth.uid()) = \"links\".\"user_id\""
+          "using": "(select auth.uid()) = \"locker\".\"links\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"locker\".\"links\".\"user_id\""
         }
       },
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.push_subscriptions": {
+    "locker.push_subscriptions": {
       "name": "push_subscriptions",
-      "schema": "",
+      "schema": "locker",
       "columns": {
         "id": {
           "name": "id",
@@ -423,16 +425,16 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.uid()) = \"push_subscriptions\".\"user_id\"",
-          "withCheck": "(select auth.uid()) = \"push_subscriptions\".\"user_id\""
+          "using": "(select auth.uid()) = \"locker\".\"push_subscriptions\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"locker\".\"push_subscriptions\".\"user_id\""
         }
       },
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.reminders": {
+    "locker.reminders": {
       "name": "reminders",
-      "schema": "",
+      "schema": "locker",
       "columns": {
         "id": {
           "name": "id",
@@ -468,7 +470,7 @@
         "recurrence": {
           "name": "recurrence",
           "type": "recurrence",
-          "typeSchema": "public",
+          "typeSchema": "locker",
           "primaryKey": false,
           "notNull": true,
           "default": "'none'"
@@ -483,7 +485,7 @@
         "status": {
           "name": "status",
           "type": "reminder_status",
-          "typeSchema": "public",
+          "typeSchema": "locker",
           "primaryKey": false,
           "notNull": true,
           "default": "'pending'"
@@ -526,6 +528,7 @@
           "name": "reminders_card_id_cards_id_fk",
           "tableFrom": "reminders",
           "tableTo": "cards",
+          "schemaTo": "locker",
           "columnsFrom": [
             "card_id"
           ],
@@ -546,8 +549,8 @@
           "to": [
             "authenticated"
           ],
-          "using": "(select auth.uid()) = \"reminders\".\"user_id\"",
-          "withCheck": "(select auth.uid()) = \"reminders\".\"user_id\""
+          "using": "(select auth.uid()) = \"locker\".\"reminders\".\"user_id\"",
+          "withCheck": "(select auth.uid()) = \"locker\".\"reminders\".\"user_id\""
         }
       },
       "checkConstraints": {},
@@ -555,9 +558,9 @@
     }
   },
   "enums": {
-    "public.card_type": {
+    "locker.card_type": {
       "name": "card_type",
-      "schema": "public",
+      "schema": "locker",
       "values": [
         "id_doc",
         "bank",
@@ -570,9 +573,9 @@
         "note"
       ]
     },
-    "public.link_kind": {
+    "locker.link_kind": {
       "name": "link_kind",
-      "schema": "public",
+      "schema": "locker",
       "values": [
         "image",
         "pdf",
@@ -580,27 +583,27 @@
         "folder"
       ]
     },
-    "public.link_source": {
+    "locker.link_source": {
       "name": "link_source",
-      "schema": "public",
+      "schema": "locker",
       "values": [
         "drive",
         "digilocker",
         "other"
       ]
     },
-    "public.recurrence": {
+    "locker.recurrence": {
       "name": "recurrence",
-      "schema": "public",
+      "schema": "locker",
       "values": [
         "none",
         "yearly",
         "monthly"
       ]
     },
-    "public.reminder_status": {
+    "locker.reminder_status": {
       "name": "reminder_status",
-      "schema": "public",
+      "schema": "locker",
       "values": [
         "pending",
         "done",
@@ -608,7 +611,9 @@
       ]
     }
   },
-  "schemas": {},
+  "schemas": {
+    "locker": "locker"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},
