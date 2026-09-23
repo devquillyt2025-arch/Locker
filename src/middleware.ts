@@ -1,12 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-// See src/lib/auth.ts for the matching requireUser() bypass and why this
-// is safe against accidentally shipping to production.
-const DEV_BYPASS = process.env.SKIP_AUTH === "true" && process.env.NODE_ENV !== "production";
+function isDevBypass() {
+  // See src/lib/auth.ts for the matching requireUser() bypass and why this
+  // is safe against accidentally shipping to production. Read live (not
+  // hoisted to a module-level constant) so a dev server that was already
+  // running before SKIP_AUTH was set doesn't get stuck on a stale value.
+  return process.env.SKIP_AUTH === "true" && process.env.NODE_ENV !== "production";
+}
 
 export async function middleware(request: NextRequest) {
-  if (DEV_BYPASS) return NextResponse.next();
+  if (isDevBypass()) return NextResponse.next();
   return updateSession(request);
 }
 
