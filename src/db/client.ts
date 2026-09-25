@@ -14,7 +14,16 @@ declare global {
 function createConnection() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
-  return postgres(url, { prepare: false });
+  return postgres(url, {
+    prepare: false,
+    max: 5,
+    // Fail fast instead of hanging a page if the DB is unreachable...
+    connect_timeout: 10,
+    // ...and recycle idle connections before the server/pooler drops them
+    // out from under us.
+    idle_timeout: 20,
+    max_lifetime: 60 * 30,
+  });
 }
 
 // Cache on globalThis so Next.js dev-mode hot reload doesn't open a new

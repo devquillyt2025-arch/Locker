@@ -11,7 +11,7 @@ export function HomeSearchHero() {
   return (
     <button
       onClick={open}
-      className="flex w-full items-center gap-3 rounded-xl border bg-card px-5 py-4 text-left text-muted-foreground shadow-sm transition-colors hover:bg-accent/50"
+      className="flex w-full items-center gap-3 rounded-2xl border bg-card px-5 py-4 text-left text-muted-foreground shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
     >
       <Search className="size-5 shrink-0" />
       <span className="flex-1">Search anything — &quot;aadhaar&quot;, &quot;car insurance renewal&quot;...</span>

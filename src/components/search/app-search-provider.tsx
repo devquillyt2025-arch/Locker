@@ -1,9 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { GlobalSearch, useGlobalSearchShortcut } from "./global-search";
+import { useGlobalSearchShortcut } from "./global-search";
 
-const SearchContext = React.createContext<{ open: () => void } | null>(null);
+type SearchContextValue = {
+  open: () => void;
+  isOpen: boolean;
+  setOpen: (open: boolean) => void;
+};
+
+const SearchContext = React.createContext<SearchContextValue | null>(null);
 
 export function useAppSearch() {
   const ctx = React.useContext(SearchContext);
@@ -11,14 +17,17 @@ export function useAppSearch() {
   return ctx;
 }
 
+// Holds only the open/closed state (and the Ctrl/⌘K shortcut). The palette
+// itself is rendered by AppShell, inside the cards store, because it
+// searches the cards already loaded on the client.
 export function AppSearchProvider({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
+  const [isOpen, setOpen] = React.useState(false);
   useGlobalSearchShortcut(setOpen);
 
-  return (
-    <SearchContext.Provider value={{ open: () => setOpen(true) }}>
-      {children}
-      <GlobalSearch open={open} onOpenChange={setOpen} />
-    </SearchContext.Provider>
+  const value = React.useMemo(
+    () => ({ open: () => setOpen(true), isOpen, setOpen }),
+    [isOpen]
   );
+
+  return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 }

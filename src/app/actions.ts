@@ -2,13 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  createCard,
-  deleteCard,
-  searchCards,
-  updateCard,
-  type SearchResult,
-} from "@/lib/cards";
+import { createCard, deleteCard, updateCard } from "@/lib/cards";
 import { cardInputSchema } from "@/lib/validation";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -19,17 +13,24 @@ export type ActionState = {
   fieldErrors?: Record<string, string>;
 };
 
+const SAVE_FAILED =
+  "Couldn't save right now. Your changes are still in the form — please try again.";
+
 function parseFormCard(formData: FormData) {
-  const raw = {
-    type: formData.get("type"),
-    title: formData.get("title"),
-    aliases: JSON.parse((formData.get("aliases") as string) || "[]"),
-    tags: JSON.parse((formData.get("tags") as string) || "[]"),
-    notes: formData.get("notes") ?? "",
-    fields: JSON.parse((formData.get("fields") as string) || "[]"),
-    links: JSON.parse((formData.get("links") as string) || "[]"),
-  };
-  return cardInputSchema.safeParse(raw);
+  try {
+    const raw = {
+      type: formData.get("type"),
+      title: formData.get("title"),
+      aliases: JSON.parse((formData.get("aliases") as string) || "[]"),
+      tags: JSON.parse((formData.get("tags") as string) || "[]"),
+      notes: formData.get("notes") ?? "",
+      fields: JSON.parse((formData.get("fields") as string) || "[]"),
+      links: JSON.parse((formData.get("links") as string) || "[]"),
+    };
+    return cardInputSchema.safeParse(raw);
+  } catch {
+    return null; // malformed JSON in a hidden input
+  }
 }
 
 export async function createCardAction(
@@ -38,13 +39,24 @@ export async function createCardAction(
 ): Promise<ActionState> {
   const user = await requireUser();
   const parsed = parseFormCard(formData);
+  if (!parsed) return { ok: false, error: "Something was wrong with the form. Please try again." };
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const card = await createCard(user.id, parsed.data);
-  revalidatePath("/cards");
-  redirect(`/cards/${card.id}`);
+  let id: string;
+  try {
+    id = (await createCard(user.id, parsed.data)).id;
+  } catch (err) {
+    console.error("createCardAction failed", err);
+    return { ok: false, error: SAVE_FAILED };
+  }
+
+  // The whole vault is cached on the client from the (app) layout, so
+  // revalidating it pushes the new card to every view (and the sidebar).
+  // redirect() throws, so it stays outside the try/catch.
+  revalidatePath("/", "layout");
+  redirect(`/cards/${id}`);
 }
 
 export async function updateCardAction(
@@ -54,26 +66,27 @@ export async function updateCardAction(
 ): Promise<ActionState> {
   const user = await requireUser();
   const parsed = parseFormCard(formData);
+  if (!parsed) return { ok: false, error: "Something was wrong with the form. Please try again." };
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  await updateCard(user.id, id, parsed.data);
-  revalidatePath("/cards");
-  revalidatePath(`/cards/${id}`);
+  try {
+    await updateCard(user.id, id, parsed.data);
+  } catch (err) {
+    console.error("updateCardAction failed", err);
+    return { ok: false, error: SAVE_FAILED };
+  }
+
+  revalidatePath("/", "layout");
   redirect(`/cards/${id}`);
 }
 
 export async function deleteCardAction(id: string): Promise<void> {
   const user = await requireUser();
   await deleteCard(user.id, id);
-  revalidatePath("/cards");
+  revalidatePath("/", "layout");
   redirect("/cards");
-}
-
-export async function searchAction(query: string): Promise<SearchResult[]> {
-  const user = await requireUser();
-  return searchCards(user.id, query);
 }
 
 export async function signOutAction(): Promise<void> {

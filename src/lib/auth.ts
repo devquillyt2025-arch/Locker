@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,7 +24,10 @@ function isDevBypass() {
 // disallowed requests to /login, but Server Actions can be invoked
 // directly (they're just POST endpoints), so every one of them calls this
 // first rather than trusting the page it was rendered from.
-export async function requireUser(): Promise<AllowedUser> {
+//
+// Wrapped in React `cache` so the layout, page and any actions in one
+// request share a single Supabase Auth round trip instead of one each.
+export const requireUser = cache(async function requireUser(): Promise<AllowedUser> {
   if (isDevBypass()) {
     return {
       id: process.env.DEV_USER_ID ?? DEV_USER_ID,
@@ -43,4 +47,4 @@ export async function requireUser(): Promise<AllowedUser> {
   }
 
   return { id: user.id, email: user.email };
-}
+});

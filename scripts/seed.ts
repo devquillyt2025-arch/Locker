@@ -112,8 +112,17 @@ const seedCards: Parameters<typeof createCard>[1][] = [
   },
 ];
 
-for (const card of seedCards) {
-  await createCard(userId, card);
+// Wrapped in a function: tsx compiles this file as CommonJS, which doesn't
+// allow top-level await.
+async function main(uid: string) {
+  for (const card of seedCards) {
+    await createCard(uid, card);
+  }
+  console.log(`Seeded ${seedCards.length} cards for user ${uid}.`);
+  process.exit(0);
 }
 
-console.log(`Seeded ${seedCards.length} cards for user ${userId}.`);
+main(userId).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -32,8 +32,9 @@ this app):
 
 Repo migration off local SQLite, Supabase schema + RLS, Google auth
 allowlist, card CRUD with templates, links UI. Search here is a
-placeholder (Postgres `ILIKE`); real Fuse + FTS + trigram search lands in
-phase 3. Secret field values are stored as plain text for now with an
+simple in-memory ranker over the cards already loaded on the client
+(instant, no server call); typo-tolerant Fuse + FTS + trigram search lands
+in phase 3. Secret field values are stored as plain text for now with an
 `is_secret` flag only — browser-side AES-256-GCM encryption lands in
 phase 2.
 

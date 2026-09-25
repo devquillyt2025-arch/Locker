@@ -1,6 +1,7 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -19,7 +20,7 @@ export function DeleteCardButton({ id, title }: { id: string; title: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+        <Button variant="outline" size="lg" className="text-destructive hover:text-destructive">
           <Trash2 className="size-4" /> Delete
         </Button>
       </AlertDialogTrigger>
@@ -35,14 +36,24 @@ export function DeleteCardButton({ id, title }: { id: string; title: string }) {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <form action={deleteCardAction.bind(null, id)}>
-            <AlertDialogAction asChild>
-              <button type="submit" className="w-full">
-                Delete
-              </button>
-            </AlertDialogAction>
+            <ConfirmDeleteButton />
           </form>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// Inside the <form> so useFormStatus can see the pending server action; the
+// button disables itself so a double click can't delete twice.
+function ConfirmDeleteButton() {
+  const { pending } = useFormStatus();
+  return (
+    <AlertDialogAction asChild>
+      <button type="submit" disabled={pending} className="w-full">
+        {pending && <Loader2 className="animate-spin" />}
+        {pending ? "Deleting..." : "Delete"}
+      </button>
+    </AlertDialogAction>
   );
 }
