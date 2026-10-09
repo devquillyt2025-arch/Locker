@@ -71,6 +71,9 @@ export const cards = lockerSchema.table(
     notes: text("notes").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // Soft delete: a card in the Trash keeps all its data and can be restored.
+    // Every normal query must filter `deleted_at is null` (see lib/cards.ts).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
     index("cards_user_id_idx").on(table.userId),

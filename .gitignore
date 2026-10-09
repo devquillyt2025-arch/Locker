@@ -44,3 +44,11 @@ next-env.d.ts
 
 # leftover local SQLite db from the pre-Supabase local-first version
 /data/
+
+# Personal documents (certificates, bank statements, marks cards, ID photos).
+# Only the docs README and the empty inbox marker are tracked — never the files.
+/docs/*
+!/docs/README.md
+!/docs/Inbox/
+/docs/Inbox/*
+!/docs/Inbox/.gitkeep

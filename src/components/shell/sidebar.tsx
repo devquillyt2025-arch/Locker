@@ -1,11 +1,15 @@
 "use client";
 
 import { AppLink as Link } from "@/components/shell/app-link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   ChevronsUpDown,
+  History,
+  ChartNoAxesCombined,
   Home,
+  FolderTree,
   LayoutGrid,
+  Network,
   LogOut,
   Monitor,
   Moon,
@@ -14,16 +18,17 @@ import {
   Plus,
   Search,
   Sun,
+  Trash2,
   Lock,
   X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { CARD_TYPES } from "@/db/schema";
-import { CARD_TYPE_META } from "@/lib/card-types";
 import { cn } from "@/lib/utils";
 import { signOutAction } from "@/app/actions";
 import { useAppSearch } from "@/components/search/app-search-provider";
 import { useCards } from "@/components/cards/cards-store";
+import { useDocs } from "@/components/docs/docs-store";
+import { useTrash } from "@/components/trash/trash-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,17 +45,17 @@ type SidebarProps = {
   onCloseMobile: () => void;
 };
 
-const RECENTS_LIMIT = 14;
-
 export function Sidebar({
   email,
   collapsed,
   onToggleCollapsed,
   onCloseMobile,
 }: SidebarProps) {
-  const { cards, counts } = useCards();
+  const { cards } = useCards();
+  const docs = useDocs();
+  const trash = useTrash();
+  const trashCount = trash.cards.length + trash.docs.length;
   const pathname = usePathname();
-  const activeType = useSearchParams().get("type");
   const { open: openSearch } = useAppSearch();
   const { theme, setTheme } = useTheme();
 
@@ -59,13 +64,14 @@ export function Sidebar({
   const hideWhenCollapsed = collapsed ? "md:hidden" : "";
 
   const isHome = pathname === "/";
-  const isAllCards = pathname === "/cards" && !activeType;
-  const activeCardId = pathname.startsWith("/cards/")
-    ? pathname.split("/")[2]
-    : undefined;
+  // Categories are tabs inside this page now, so it stays highlighted for all of them.
+  const isAllCards = pathname === "/cards";
+  const isRecents = pathname === "/recents";
+  const isDocuments = pathname === "/documents";
+  const isStructure = pathname === "/structure";
+  const isReports = pathname === "/reports";
+  const isTrash = pathname === "/trash";
 
-  const usedTypes = CARD_TYPES.filter((t) => (counts[t] ?? 0) > 0);
-  const recents = cards.slice(0, RECENTS_LIMIT);
   const initial = (email[0] ?? "?").toUpperCase();
 
   return (
@@ -115,8 +121,8 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Primary actions */}
-      <div className={cn("space-y-0.5 px-2", collapsed && "md:px-2")}>
+      {/* Menu. Takes the free height (so the account footer stays pinned) and scrolls if the window is very short. */}
+      <div className={cn("min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3", collapsed && "md:px-2")}>
         <NavItem
           href="/cards/new"
           icon={Plus}
@@ -165,64 +171,49 @@ export function Sidebar({
           collapsed={collapsed}
           onNavigate={onCloseMobile}
         />
+        <NavItem
+          href="/recents"
+          icon={History}
+          label="Recents"
+          active={isRecents}
+          collapsed={collapsed}
+          onNavigate={onCloseMobile}
+        />
+        <NavItem
+          href="/documents"
+          icon={FolderTree}
+          label="Documents"
+          active={isDocuments}
+          count={docs.available ? docs.files.length : undefined}
+          collapsed={collapsed}
+          onNavigate={onCloseMobile}
+        />
+        <NavItem
+          href="/structure"
+          icon={Network}
+          label="Structure"
+          active={isStructure}
+          collapsed={collapsed}
+          onNavigate={onCloseMobile}
+        />
+        <NavItem
+          href="/reports"
+          icon={ChartNoAxesCombined}
+          label="Reports"
+          active={isReports}
+          collapsed={collapsed}
+          onNavigate={onCloseMobile}
+        />
+        <NavItem
+          href="/trash"
+          icon={Trash2}
+          label="Trash"
+          active={isTrash}
+          count={trashCount > 0 ? trashCount : undefined}
+          collapsed={collapsed}
+          onNavigate={onCloseMobile}
+        />
       </div>
-
-      {/* Scrollable lists */}
-      <div className={cn("mt-4 min-h-0 flex-1 overflow-y-auto px-2 pb-3", collapsed && "md:hidden")}>
-        {usedTypes.length > 0 && (
-          <section className="mb-5">
-            <SectionLabel>Categories</SectionLabel>
-            <div className="space-y-0.5">
-              {usedTypes.map((t) => {
-                const meta = CARD_TYPE_META[t];
-                return (
-                  <NavItem
-                    key={t}
-                    href={`/cards?type=${t}`}
-                    icon={meta.icon}
-                    label={meta.plural}
-                    count={counts[t]}
-                    active={pathname === "/cards" && activeType === t}
-                    collapsed={false}
-                    onNavigate={onCloseMobile}
-                    small
-                  />
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        <section>
-          <SectionLabel>Recents</SectionLabel>
-          {recents.length === 0 ? (
-            <p className="px-2.5 text-xs text-muted-foreground">
-              Cards you add will show up here.
-            </p>
-          ) : (
-            <div className="space-y-0.5">
-              {recents.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/cards/${c.id}`}
-                  onClick={onCloseMobile}
-                  title={c.title}
-                  className={cn(
-                    "block truncate rounded-lg px-2.5 py-1.5 text-[13px] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    activeCardId === c.id &&
-                      "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                  )}
-                >
-                  {c.title}
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Spacer keeps the footer pinned when the rail is collapsed */}
-      {collapsed && <div className="hidden flex-1 md:block" />}
 
       {/* Account */}
       <div className="shrink-0 border-t border-sidebar-border p-2">
@@ -274,14 +265,6 @@ export function Sidebar({
 
 function Check() {
   return <span className="ml-auto text-xs text-primary">●</span>;
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="mb-1 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-      {children}
-    </h3>
-  );
 }
 
 function NavItem({

@@ -8,6 +8,13 @@
       "when": 1790173122008,
       "tag": "0000_dark_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790405638984,
+      "tag": "0001_low_blizzard",
+      "breakpoints": true
     }
   ]
 }

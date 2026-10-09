@@ -120,11 +120,11 @@ export function CardForm({
       <input type="hidden" name="fields" value={JSON.stringify(fieldRows)} />
       <input type="hidden" name="links" value={JSON.stringify(linkRows)} />
 
-      <div className="grid gap-6 pb-8 xl:grid-cols-2 xl:gap-8">
-        {/* Left column: identity + free text */}
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 pb-8 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] xl:gap-8">
+        {/* Left column: basics, then files & links. A container, so rows adapt to this column's width rather than the screen's. */}
+        <div className="min-w-0 space-y-6 @container">
           <Section title="Basics">
-            <div className="grid gap-4 sm:grid-cols-[14rem_minmax(0,1fr)]">
+            <div className="grid gap-4 @lg:grid-cols-[14rem_minmax(0,1fr)]">
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
                 <Select name="type" value={type} onValueChange={(v) => setType(v as CardType)}>
@@ -188,22 +188,71 @@ export function CardForm({
             </div>
           </Section>
 
-          <Section title="Notes">
-            <Textarea
-              id="notes"
-              name="notes"
-              defaultValue={card?.notes}
-              placeholder="Free-text notes about this card."
-              rows={8}
-              aria-label="Notes"
-            />
+          <Section title="Files & links">
+            <p className="text-xs text-muted-foreground">
+              Paste a Google Drive or DigiLocker link — file id and kind are detected automatically.
+              Keep Drive sharing set to &quot;Restricted&quot;.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="Label (e.g. Front)"
+                aria-label="Link label"
+                value={linkLabelDraft}
+                onChange={(e) => setLinkLabelDraft(e.target.value)}
+                className="w-full"
+              />
+              <Input
+                placeholder="https://drive.google.com/..."
+                aria-label="Link URL"
+                value={linkUrlDraft}
+                onChange={(e) => setLinkUrlDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addLink();
+                  }
+                }}
+                className="min-w-0 flex-1 basis-40"
+              />
+              <Button type="button" variant="outline" onClick={addLink}>
+                <Plus /> Add
+              </Button>
+            </div>
+            <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+              {linkRows.map((link, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg border px-3 py-2">
+                  <Link2 className="size-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{link.label || "Untitled link"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{link.url}</p>
+                  </div>
+                  <Badge variant="outline" className="shrink-0 capitalize">
+                    {link.source}
+                  </Badge>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    title="Remove link"
+                    onClick={() => removeLink(i)}
+                  >
+                    <X />
+                  </Button>
+                </div>
+              ))}
+              {linkRows.length === 0 && (
+                <p className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                  No links yet.
+                </p>
+              )}
+            </div>
           </Section>
         </div>
 
-        {/* Right column: structured data + files */}
-        <div className="space-y-6">
+        {/* Right column: details and notes */}
+        <div className="min-w-0 space-y-6 @container">
           <Section
-            title="Fields"
+            title="Details"
             action={
               <Button type="button" variant="outline" size="sm" onClick={addFieldRow}>
                 <Plus /> Add field
@@ -216,20 +265,20 @@ export function CardForm({
             </p>
             <div className="space-y-2">
               {fieldRows.map((row, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-wrap items-center gap-2">
                   <Input
                     placeholder="Key (e.g. IFSC)"
                     aria-label="Field key"
                     value={row.key}
                     onChange={(e) => updateFieldRow(i, { key: e.target.value })}
-                    className="w-32 sm:w-44"
+                    className="w-full @md:w-44"
                   />
                   <Input
                     placeholder="Value"
                     aria-label="Field value"
                     value={row.value}
                     onChange={(e) => updateFieldRow(i, { value: e.target.value })}
-                    className="min-w-0 flex-1"
+                    className="min-w-0 flex-1 basis-32"
                   />
                   <Button
                     type="button"
@@ -263,64 +312,15 @@ export function CardForm({
             </div>
           </Section>
 
-          <Section title="Links">
-            <p className="text-xs text-muted-foreground">
-              Paste a Google Drive or DigiLocker link — file id and kind are detected automatically.
-              Keep Drive sharing set to &quot;Restricted&quot;.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <Input
-                placeholder="Label (e.g. Front)"
-                aria-label="Link label"
-                value={linkLabelDraft}
-                onChange={(e) => setLinkLabelDraft(e.target.value)}
-                className="w-full sm:w-40"
-              />
-              <Input
-                placeholder="https://drive.google.com/..."
-                aria-label="Link URL"
-                value={linkUrlDraft}
-                onChange={(e) => setLinkUrlDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addLink();
-                  }
-                }}
-                className="min-w-0 flex-1"
-              />
-              <Button type="button" variant="outline" onClick={addLink}>
-                <Plus /> Add
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {linkRows.map((link, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg border px-3 py-2">
-                  <Link2 className="size-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{link.label || "Untitled link"}</p>
-                    <p className="truncate text-xs text-muted-foreground">{link.url}</p>
-                  </div>
-                  <Badge variant="outline" className="shrink-0 capitalize">
-                    {link.source}
-                  </Badge>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    title="Remove link"
-                    onClick={() => removeLink(i)}
-                  >
-                    <X />
-                  </Button>
-                </div>
-              ))}
-              {linkRows.length === 0 && (
-                <p className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                  No links yet.
-                </p>
-              )}
-            </div>
+          <Section title="Notes">
+            <Textarea
+              id="notes"
+              name="notes"
+              defaultValue={card?.notes}
+              placeholder="Free-text notes about this card."
+              rows={8}
+              aria-label="Notes"
+            />
           </Section>
         </div>
       </div>

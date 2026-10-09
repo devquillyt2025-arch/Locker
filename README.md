@@ -89,3 +89,40 @@ data.
 
 Deploy to Vercel and set the same env vars there (use your deployed origin
 for the `/auth/callback` redirect URL added above).
+
+## Google Drive uploads
+
+The **Documents** tab can upload your files to **your own Google Drive** and add
+the Drive link to each card (the local link stays too). It uses Google's login
+and the narrow `drive.file` permission, so the app can only see files it
+uploads itself — nothing else in your Drive. Uploaded files are private
+(owner-only) and go into a `Locker Documents` folder that mirrors `docs/`.
+
+Only files that are **attached to a card** are uploaded, and never anything in
+`Needs Review`, `Inbox` or `Reference` (the server enforces this).
+
+### One-time setup
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → create a project
+   (e.g. "Locker") → **APIs & Services → Library → Google Drive API → Enable**.
+2. **OAuth consent screen** (Google Auth Platform): user type **External**, add
+   an app name and your email, add the scope
+   `https://www.googleapis.com/auth/drive.file`, then **Publish app**.
+   (While an app is in "Testing", Google expires the connection every 7 days.
+   Publishing an app that only asks for `drive.file` needs no review; you'll see
+   an "unverified app" screen once — choose *Advanced → continue*.)
+3. **Credentials → Create credentials → OAuth client ID → Web application.**
+   Under *Authorized redirect URIs* add exactly
+   `http://localhost:3001/api/drive/callback`.
+4. Put the client ID and secret in `.env.local`:
+   ```
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   ```
+5. Restart `npm run dev`, open **Documents**, press **Connect Google Drive**,
+   then **Upload N files to Drive**.
+
+The connection (a refresh token) is stored in `data/google-drive.json` and the
+list of uploaded files in `data/drive-uploads.json`; both are git-ignored.
+**Disconnect** on the Documents page revokes the access and deletes the token.
+Re-running an upload skips files that are already on Drive.

@@ -8,7 +8,8 @@ export function CopyLinkButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
-    await navigator.clipboard.writeText(url);
+    // Local file links are relative; copy something pasteable.
+    await navigator.clipboard.writeText(url.startsWith("/") ? window.location.origin + url : url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }

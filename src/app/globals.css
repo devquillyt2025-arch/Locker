@@ -121,6 +121,31 @@
   --sidebar-ring: oklch(0.7 0.14 40 / 55%);
 }
 
+/* ---------- Data visualisation (Reports) ----------
+   Validated categorical order (slot 1..5) and status colours. Light and dark
+   are separate steps of the same hues, not an automatic flip. Status colours
+   are reserved for state and always ship with an icon + label. */
+.viz-root {
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --viz-good: #0ca30c;
+  --viz-warn: #fab219;
+  --viz-serious: #ec835a;
+  --viz-crit: #d03b3b;
+  --viz-good-ink: #006300;
+}
+.dark .viz-root {
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-4: #c98500;
+  --viz-5: #d55181;
+  --viz-good-ink: #0ca30c;
+}
+
 /* ---------- Motion ---------- */
 
 @keyframes rise {

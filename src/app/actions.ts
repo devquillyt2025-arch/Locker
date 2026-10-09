@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createCard, deleteCard, updateCard } from "@/lib/cards";
+import { createCard, trashCard, updateCard } from "@/lib/cards";
 import { cardInputSchema } from "@/lib/validation";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -82,11 +82,14 @@ export async function updateCardAction(
   redirect(`/cards/${id}`);
 }
 
+// "Delete" moves the card to the Trash (nothing is erased) — it can be restored
+// from the Trash tab. Permanent deletion is purgeCardAction in trash-actions.ts.
 export async function deleteCardAction(id: string): Promise<void> {
   const user = await requireUser();
-  await deleteCard(user.id, id);
+  const moved = await trashCard(user.id, id);
   revalidatePath("/", "layout");
-  redirect("/cards");
+  // ?trashed=<id> makes the next page offer an Undo.
+  redirect(moved ? `/cards?trashed=${encodeURIComponent(id)}` : "/cards");
 }
 
 export async function signOutAction(): Promise<void> {

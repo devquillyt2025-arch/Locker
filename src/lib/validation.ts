@@ -7,9 +7,17 @@ export const fieldInputSchema = z.object({
   isSecret: z.boolean(),
 });
 
+// Links are normally full URLs (Drive, DigiLocker, ...). A path under
+// /files/ is also accepted: that's a document on this machine, served from
+// the local docs folder (see app/files/[...path]/route.ts).
+const isLocalFilePath = (v: string) => v.startsWith("/files/") && !v.includes("..");
+
 export const linkInputSchema = z.object({
   label: z.string().trim(),
-  url: z.string().trim().url("Enter a valid URL"),
+  url: z
+    .string()
+    .trim()
+    .refine((v) => isLocalFilePath(v) || z.string().url().safeParse(v).success, "Enter a valid URL"),
   source: z.enum(LINK_SOURCES),
   driveFileId: z.string().trim().nullable(),
   kind: z.enum(LINK_KINDS),

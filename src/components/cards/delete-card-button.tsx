@@ -21,16 +21,15 @@ export function DeleteCardButton({ id, title }: { id: string; title: string }) {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="outline" size="lg" className="text-destructive hover:text-destructive">
-          <Trash2 className="size-4" /> Delete
+          <Trash2 className="size-4" /> Move to Trash
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete &quot;{title}&quot;?</AlertDialogTitle>
+          <AlertDialogTitle>Move &quot;{title}&quot; to the Trash?</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently deletes the card, its fields, and anything
-            linked to it (files, reminders, vault entries). This can&apos;t
-            be undone.
+            The card goes to the Trash with all its fields and links. You can restore it any time from the
+            Trash tab — nothing is erased.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -52,7 +51,7 @@ function ConfirmDeleteButton() {
     <AlertDialogAction asChild>
       <button type="submit" disabled={pending} className="w-full">
         {pending && <Loader2 className="animate-spin" />}
-        {pending ? "Deleting..." : "Delete"}
+        {pending ? "Moving..." : "Move to Trash"}
       </button>
     </AlertDialogAction>
   );
