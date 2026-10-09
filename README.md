@@ -90,6 +90,24 @@ data.
 Deploy to Vercel and set the same env vars there (use your deployed origin
 for the `/auth/callback` redirect URL added above).
 
+## Login PIN
+
+Set `LOCKER_PIN` in `.env.local` and the whole app — pages, the `/files/...`
+documents and every Server Action — sits behind a PIN screen instead of Google
+sign-in. Also set `PIN_SESSION_SECRET` (see `.env.example` for a one-liner that
+generates one); it signs the cookie that remembers you've unlocked.
+
+- You stay unlocked for 30 days on that browser; **Sign out** in the account
+  menu locks it again. Changing the PIN signs every browser out.
+- With a PIN set, `SKIP_AUTH` is ignored, and the Google sign-in code is left
+  dormant. Remove `LOCKER_PIN` to go back to the old behaviour.
+- A short PIN has few combinations, so wrong guesses are throttled: after 5 in
+  a row the app locks PIN entry for 30 s, doubling each time up to 15 min.
+  That counter lives in the server's memory, so it is exact when you run the
+  app yourself and only best-effort on serverless hosting.
+- The PIN lives only in the env file. It is never stored in the database or
+  the source.
+
 ## Google Drive uploads
 
 The **Documents** tab can upload your files to **your own Google Drive** and add

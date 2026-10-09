@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { PIN_COOKIE, pinEnabled } from "@/lib/pin-session";
 import { createCard, trashCard, updateCard } from "@/lib/cards";
 import { cardInputSchema } from "@/lib/validation";
 import { requireUser } from "@/lib/auth";
@@ -93,7 +95,11 @@ export async function deleteCardAction(id: string): Promise<void> {
 }
 
 export async function signOutAction(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  if (pinEnabled()) {
+    (await cookies()).delete(PIN_COOKIE); // locks the app: the PIN is asked for again
+  } else {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
   redirect("/login");
 }

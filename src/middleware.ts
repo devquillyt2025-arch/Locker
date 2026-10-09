@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { matchAppRoute } from "@/lib/app-routes";
+import { PIN_COOKIE, pinEnabled, verifySessionToken } from "@/lib/pin-session";
 
 function isDevBypass() {
   // See src/lib/auth.ts for the matching requireUser() bypass and why this
@@ -22,8 +23,29 @@ function isKnownPath(pathname: string) {
   }
 }
 
+// Login-PIN mode (LOCKER_PIN is set): everything except /login needs the signed
+// PIN cookie. No Supabase round trip is made in this mode.
+async function pinGate(request: NextRequest) {
+  const unlocked = await verifySessionToken(request.cookies.get(PIN_COOKIE)?.value);
+  const onLogin = request.nextUrl.pathname === "/login";
+  if (unlocked === onLogin) {
+    // unlocked on /login -> into the app; locked anywhere else -> to /login
+    const url = request.nextUrl.clone();
+    url.pathname = onLogin ? "/" : "/login";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+  return NextResponse.next();
+}
+
 export async function middleware(request: NextRequest) {
-  const response = isDevBypass() ? NextResponse.next() : await updateSession(request);
+  // The PIN takes priority over SKIP_AUTH and Google sign-in: with a PIN set,
+  // neither can be used to get around it.
+  const response = pinEnabled()
+    ? await pinGate(request)
+    : isDevBypass()
+      ? NextResponse.next()
+      : await updateSession(request);
 
   // Sign-in redirects (and anything else that isn't a plain pass-through)
   // win. Otherwise, an unknown URL must answer 404. The app's catch-all page
